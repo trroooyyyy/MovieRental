@@ -1,5 +1,9 @@
 package example;
 
+import example.price.ChildrensPrice;
+import example.price.HorrorPrice;
+import example.price.NewReleasePrice;
+import example.price.RegularPrice;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -21,7 +25,7 @@ public class CustomerTest {
 
     @Test
     public void testRegularMovieOneDayRental() {
-        rentals.add(new Rental(new Movie("Rembo", Movie.MovieType.REGULAR), 1));
+        rentals.add(new Rental(new Movie("Rembo", new RegularPrice()), 1));
 
         String statement = customer.statement();
         assertTrue(statement.contains("Amount owed is 2.0"));
@@ -30,7 +34,7 @@ public class CustomerTest {
 
     @Test
     public void testRegularMovieMoreThanTwoDaysRental() {
-        rentals.add(new Rental(new Movie("Rembo", Movie.MovieType.REGULAR), 5));
+        rentals.add(new Rental(new Movie("Rembo", new RegularPrice()), 5));
 
         String statement = customer.statement();
         assertTrue(statement.contains("Amount owed is 6.5"));
@@ -39,7 +43,7 @@ public class CustomerTest {
 
     @Test
     public void testNewReleaseMovieOneDayRental() {
-        rentals.add(new Rental(new Movie("Lord of the Rings", Movie.MovieType.NEW_RELEASE), 1));
+        rentals.add(new Rental(new Movie("Lord of the Rings", new NewReleasePrice()), 1));
 
         String statement = customer.statement();
         assertTrue(statement.contains("Amount owed is 3.0"));
@@ -48,7 +52,7 @@ public class CustomerTest {
 
     @Test
     public void testNewReleaseMovieMultipleDaysRental() {
-        rentals.add(new Rental(new Movie("Lord of the Rings", Movie.MovieType.NEW_RELEASE), 3));
+        rentals.add(new Rental(new Movie("Lord of the Rings", new NewReleasePrice()), 3));
 
         String statement = customer.statement();
         assertTrue(statement.contains("Amount owed is 9.0"));
@@ -57,7 +61,7 @@ public class CustomerTest {
 
     @Test
     public void testChildrenMovieUpToThreeDaysRental() {
-        rentals.add(new Rental(new Movie("Harry Potter", Movie.MovieType.CHILDRENS), 3));
+        rentals.add(new Rental(new Movie("Harry Potter", new ChildrensPrice()), 3));
 
         String statement = customer.statement();
         assertTrue(statement.contains("Amount owed is 1.5"));
@@ -66,7 +70,7 @@ public class CustomerTest {
 
     @Test
     public void testChildrenMovieMoreThanThreeDaysRental() {
-        rentals.add(new Rental(new Movie("Harry Potter", Movie.MovieType.CHILDRENS), 5));
+        rentals.add(new Rental(new Movie("Harry Potter", new ChildrensPrice()), 5));
 
         String statement = customer.statement();
         assertTrue(statement.contains("Amount owed is 4.5"));
@@ -76,9 +80,9 @@ public class CustomerTest {
     @Test
     public void testMultipleRentals() {
         rentals.addAll(List.of(
-                new Rental(new Movie("Rembo", Movie.MovieType.REGULAR), 1),
-                new Rental(new Movie("Lord of the Rings", Movie.MovieType.NEW_RELEASE), 4),
-                new Rental(new Movie("Harry Potter", Movie.MovieType.CHILDRENS), 5)
+                new Rental(new Movie("Rembo", new RegularPrice()), 1),
+                new Rental(new Movie("Lord of the Rings", new NewReleasePrice()), 4),
+                new Rental(new Movie("Harry Potter", new ChildrensPrice()), 5)
         ));
 
         String statement = customer.statement();
@@ -103,8 +107,8 @@ public class CustomerTest {
     @Test
     public void testBonusFrequentRenterPointsForMultipleNewReleases() {
         rentals.addAll(List.of(
-                new Rental(new Movie("Lord of the Rings", Movie.MovieType.NEW_RELEASE), 2),
-                new Rental(new Movie("Lord of the Rings", Movie.MovieType.NEW_RELEASE), 3)
+                new Rental(new Movie("Lord of the Rings", new NewReleasePrice()), 2),
+                new Rental(new Movie("Lord of the Rings", new NewReleasePrice()), 3)
         ));
 
         String statement = customer.statement();
@@ -116,12 +120,36 @@ public class CustomerTest {
     @Test
     public void testBonusForTwoNewReleasesSameDay() {
         rentals.addAll(List.of(
-                new Rental(new Movie("Lord of the Rings", Movie.MovieType.NEW_RELEASE), 1),
-                new Rental(new Movie("Lord of the Rings", Movie.MovieType.NEW_RELEASE), 1)
+                new Rental(new Movie("Lord of the Rings", new NewReleasePrice()), 1),
+                new Rental(new Movie("Lord of the Rings", new NewReleasePrice()), 1)
         ));
 
         String statement = customer.statement();
         assertTrue(statement.contains("Amount owed is 6.0"));
         assertTrue(statement.contains("You earned 2 frequent renter points"));
+    }
+
+    @Test
+    public void testHorrorMovieOneDayRental() {
+        rentals.add(new Rental(new Movie("Alien", new HorrorPrice()), 5));
+
+        String statement = customer.statement();
+        assertTrue(statement.contains("Amount owed is 3.0"));
+        assertTrue(statement.contains("You earned 2 frequent renter points"));
+    }
+
+
+    @Test
+    public void testHorrorRentalForEightDays() {
+        rentals.add(
+                new Rental(new Movie("Alien", new HorrorPrice()), 8)
+        );
+
+        String statement = customer.statement();
+        assertEquals("""
+                Rental Record for Arthur Netrebin
+                \tAlien\t5.0
+                Amount owed is 5.0
+                You earned 2 frequent renter points""", statement);
     }
 }
